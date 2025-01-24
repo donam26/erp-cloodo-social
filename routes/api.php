@@ -22,9 +22,9 @@ Route::group(['middleware' => ['api']], function ($router) {
 
     // Routes cần auth
     Route::group(['middleware' => 'auth:api'], function ($router) {
-        Route::post('logout', [AuthController::class, 'logout']);
+        Route::post('logout', [AuthController::class, 'logout'])->name('logout');
         Route::post('refresh', [AuthController::class, 'refresh']);
-        Route::post('me', [AuthController::class, 'me']);
+        Route::get('me', [AuthController::class, 'me']);
 
         // Route Post
         Route::prefix('posts')->group(function () {

@@ -4,27 +4,37 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AuthRequest\RegisterRequest;
+use App\Http\Requests\AuthRequest\LoginRequest;
 use App\Http\Resources\LoginResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->validated();
         if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return $this->errorResponse([
+                'Unauthorized',
+            ], 401);
         }
-        return new LoginResource($this->respondWithToken($token));
+        return $this->successResponse(LoginResource::make($this->respondWithToken($token)), 'Login successfully');
+    }
+
+    public function me()
+    {
+        $token = JWTAuth::fromUser(Auth::user());
+        return $this->successResponse(LoginResource::make($this->respondWithToken($token)), 'Data user');
     }
 
     public function refresh()
-    {
-        return $this->respondWithToken(auth()->refresh());
+    {   
+        return $this->successResponse(LoginResource::make($this->respondWithToken(auth()->refresh())), 'Refresh token');
     }
 
     protected function respondWithToken($token)
@@ -32,8 +42,8 @@ class AuthController extends Controller
         return [
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60,
-            'user' => auth()->user(),
+            'expires_in' => JWTAuth::factory()->getTTL() * 60,
+            'user' => Auth::user(),
         ];
     }
 
@@ -50,14 +60,14 @@ class AuthController extends Controller
         $user = User::create($data);
         $credentials = $request->only('email', 'password');
         if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return $this->errorResponse('Unauthorized', 401);
         }
-        return new LoginResource($this->respondWithToken($token));
+        return $this->successResponse(LoginResource::make($this->respondWithToken($token)), 'Register successfully');
     }
 
     public function logout()
     {
         JWTAuth::invalidate(JWTAuth::getToken());
-        return response()->json(['message' => 'Successfully logged out']);
+        return $this->successResponse([], 'Successfully logged out');
     }
 }

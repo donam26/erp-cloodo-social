@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Str;
 
 class SocialAuthController extends Controller
 {
@@ -16,7 +17,10 @@ class SocialAuthController extends Controller
      */
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->stateless()->redirect();
+        return Socialite::driver('google')
+            ->with(['prompt' => 'select_account'])
+            ->stateless()
+            ->redirect();
     }
 
     /**
@@ -24,12 +28,38 @@ class SocialAuthController extends Controller
      */
     public function handleGoogleCallback(Request $request)
     {
-        $urlLoginToken = env('FRONTEND_URL');
-        // $urlLoginToken = config('app.FRONTEND_URL');
-        $token = 'fake_token';
-        logger($token . $urlLoginToken);
+        try {
+            $googleUser = Socialite::driver('google')
+            ->stateless()
+            ->user();
+            logger(json_encode($googleUser));
+            
+            // Tìm hoặc tạo user mới
+            $user = User::updateOrCreate(
+                ['email' => $googleUser->email],
+                [
+                    'name' => $googleUser->name,
+                    'password' => Hash::make(Str::random(16)),
+                    'google_id' => $googleUser->id,
+                    'avatar' => $googleUser->avatar
+                ]
+            );
 
-        $user = Socialite::driver('google')->stateless()->user();
-        return redirect()->away($urlLoginToken . $token);
+            // Tạo JWT token
+            $token = JWTAuth::fromUser($user);
+            
+            // Redirect về frontend với token
+            $frontendUrl = config('app.frontend_url');
+            if (!$frontendUrl) {
+                throw new \Exception('Frontend URL not configured');
+            }
+            return redirect()->away($frontendUrl . '?token=' . $token);
+            
+        } catch (\Exception $e) {
+            logger()->error('Google login error: ' . $e->getMessage());
+            return redirect()->away(
+                config('app.frontend_url') . '?error=auth_failed'
+            );
+        }
     }
 }
