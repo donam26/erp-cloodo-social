@@ -7,6 +7,7 @@ use App\Http\Controllers\Group\GroupMemberController;
 use App\Http\Controllers\Messenger\ConversationController;
 use App\Http\Controllers\Post\PostController;
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Story\StoryController;
 use Illuminate\Support\Facades\Route;
 
@@ -82,6 +83,11 @@ Route::group(['middleware' => ['api']], function ($router) {
             Route::get('/', [StoryController::class, 'index']);
             Route::post('/', [StoryController::class, 'store']);
             Route::delete('/{story}', [StoryController::class, 'delete']);
+        });
+
+        // Route Notification
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
         });
     });
 });

@@ -6,6 +6,7 @@ use App\Enums\FriendStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\Friend;
+use App\Notifications\RequestFriend;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 
@@ -31,6 +32,7 @@ class FriendController extends Controller
                     'friend_id' => $id,
                     'type' => FriendStatus::Pending->value,
                 ]);
+                auth()->user()->notify(new RequestFriend($id));
                 return $this->successResponse(['message' => FriendStatus::SendRequest->value], 201);
             }
         } else {
