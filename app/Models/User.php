@@ -156,12 +156,12 @@ class User extends Authenticatable implements JWTSubject
                         $subQuery->select('friends.friend_id')
                             ->from('friends')
                             ->where('friends.user_id', $this->id)
-                            ->where('friends.type', FriendStatus::Accepted->value)
+                            ->where('friends.status', FriendStatus::Accepted->value)
                             ->union(
                                 DB::table('friends')
                                     ->select('friends.user_id')
                                     ->where('friends.friend_id', $this->id)
-                                    ->where('friends.type', FriendStatus::Accepted->value)
+                                    ->where('friends.status', FriendStatus::Accepted->value)
                             );
                     });
             })

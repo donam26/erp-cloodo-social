@@ -65,23 +65,8 @@
                 const content = $('#message-input').val();
                 if (!content) return;
 
-                // Gửi tin nhắn qua API
-                $.ajax({
-                    url: '/api/messages',
-                    method: 'POST',
-                    data: {
-                        content: content,
-                        conversation_id: '{{ $conversation_id }}'
-                    },
-                    success: function(response) {
-                        $('#message-input').val('');
-                        appendMessage(response.data, 'sent');
-                    },
-                    error: function(error) {
-                        console.error('Error:', error);
-                        alert('Có lỗi xảy ra khi gửi tin nhắn');
-                    }
-                });
+                $('#message-input').val('');
+                appendMessage(content, 'sent');
             });
 
             // Hàm thêm tin nhắn vào khung chat
