@@ -10,7 +10,7 @@ class PostObserver
     public function creating(Post $post)
     {
         // Gán user_id khi tạo post
-        // $post->user_id = auth()->id();
+        $post->user_id = auth()->id();
     }
 
     public function deleting(Post $post)

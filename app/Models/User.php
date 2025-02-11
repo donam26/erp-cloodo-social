@@ -66,9 +66,9 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
-     * Kiểm tra trạng thái k�t bạn với một user
+     * Kiểm tra trạng thái kết bạn với một user
      * 
-     * @param string $friendId ID của user c�n kiểm tra
+     * @param string $friendId ID của user cần kiểm tra
      * @return object|null Trả về record trong bảng friends hoặc null
      */
     public function checkFriend($friendId)
@@ -98,7 +98,7 @@ class User extends Authenticatable implements JWTSubject
                     ->where('friends.user_id', '=', $this->id)
                     ->orOn('friends.user_id', '=', 'users.id')
                     ->where('friends.friend_id', '=', $this->id)
-                    ->where('friends.type', '=', 'accepted');
+                    ->where('friends.status', '=', FriendStatus::Accepted->value);
             })
             ->select('users.*');
     }
@@ -110,7 +110,7 @@ class User extends Authenticatable implements JWTSubject
                 $query->select('friend_id')
                     ->from('friends')
                     ->where('user_id', $this->id)
-                    ->whereIn('type', [
+                    ->whereIn('status', [
                         FriendStatus::Pending->value,
                         FriendStatus::Accepted->value,
                         FriendStatus::Blocked->value
@@ -120,7 +120,7 @@ class User extends Authenticatable implements JWTSubject
                 $query->select('user_id')
                     ->from('friends')
                     ->where('friend_id', $this->id)
-                    ->whereIn('type', [
+                    ->whereIn('status', [
                         FriendStatus::Pending->value,
                         FriendStatus::Accepted->value,
                         FriendStatus::Blocked->value
@@ -135,11 +135,9 @@ class User extends Authenticatable implements JWTSubject
         return DB::table('users')
             ->join('friends', 'users.id', '=', 'friends.friend_id')
             ->where('friends.user_id', $this->id)
-            ->where('friends.type', FriendStatus::Pending->value)
+            ->where('friends.status', FriendStatus::Pending->value)
             ->select('users.*');
     }
-
-
 
     public function posts()
     {
@@ -191,5 +189,37 @@ class User extends Authenticatable implements JWTSubject
             })
             ->with(['author']) 
             ->orderBy('created_at', 'desc');
+    }
+
+    public function mutualFriends($otherUserId)
+    {
+        return DB::table('users')
+            ->whereIn('users.id', function ($query) {
+                $query->select('friend_id')
+                    ->from('friends')
+                    ->where('user_id', $this->id)
+                    ->where('status', FriendStatus::Accepted->value);
+            })
+            ->whereIn('users.id', function ($query) use ($otherUserId) {
+                $query->select('friend_id')
+                    ->from('friends')
+                    ->where('user_id', $otherUserId)
+                    ->where('status', FriendStatus::Accepted->value);
+            })
+            ->orWhereIn('users.id', function ($query) {
+                $query->select('user_id')
+                    ->from('friends')
+                    ->where('friend_id', $this->id)
+                    ->where('status', FriendStatus::Accepted->value);
+            })
+            ->whereIn('users.id', function ($query) use ($otherUserId) {
+                $query->select('user_id')
+                    ->from('friends')
+                    ->where('friend_id', $otherUserId)
+                    ->where('status', FriendStatus::Accepted->value);
+            })
+            ->where('users.id', '!=', $this->id)
+            ->where('users.id', '!=', $otherUserId)
+            ->select('users.*');
     }
 }

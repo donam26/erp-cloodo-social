@@ -8,6 +8,7 @@ use App\Http\Controllers\Messenger\ConversationController;
 use App\Http\Controllers\Post\PostController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Notification\NotificationController;
+use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Story\StoryController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,9 +32,10 @@ Route::group(['middleware' => ['api']], function ($router) {
         Route::prefix('posts')->group(function () {
             Route::get('/', [PostController::class, 'index']);
             Route::post('/', [PostController::class, 'store']);
+            Route::post('/{post}/react', [PostController::class, 'react']);
+            Route::post('/{post}/comment', [PostController::class, 'comment']);
             Route::delete('/{post}', [PostController::class, 'delete']);
-            Route::get('/waitAccepts', [PostController::class, 'waitAccepts']);
-            Route::post('/{id}/{action}', [PostController::class, 'request']);
+            Route::put('/{post}', [PostController::class, 'update']);
         });
 
         // Route Friend
@@ -41,7 +43,7 @@ Route::group(['middleware' => ['api']], function ($router) {
             Route::get('/', [FriendController::class, 'index']);
             Route::get('/suggests', [FriendController::class, 'suggests']);
             Route::get('/waitAccepts', [FriendController::class, 'waitAccepts']);
-            Route::post('/{id}/{action}', [FriendController::class, 'request']);
+            Route::post('/{user}/{action}', [FriendController::class, 'request']);
         });
 
         // Route Group
@@ -86,8 +88,15 @@ Route::group(['middleware' => ['api']], function ($router) {
         });
 
         // Route Notification
-        Route::prefix('notifications')->group(function () {
-            Route::get('/', [NotificationController::class, 'index']);
+        // Route::prefix('notifications')->group(function () {
+        //     Route::get('/', [NotificationController::class, 'index']);
+        // });
+
+        // Route Profile
+        Route::prefix('profile')->group(function () {
+            Route::get('/', [ProfileController::class, 'index']);
+            Route::get('/{user}', [ProfileController::class, 'show']);
+            Route::get('/{user}/mutual-friends', [ProfileController::class, 'mutualFriends']);
         });
     });
 });

@@ -6,67 +6,68 @@ use App\Enums\FriendStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\Friend;
+use App\Models\User;
 use App\Notifications\RequestFriend;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FriendController extends Controller
 {
     public function index(Request $request)
     {
         $limit = $request->input('limit', 10);
-        $friends = auth()->user()->friends()->paginate($limit);
+        $friends = Auth::user()->friends()->paginate($limit);
         return $this->successResponse(UserResource::collection($friends));
     }
 
-    public function request($id, $action)
+    public function request(User $user, $action)
     {
-        $userRelationship = Friend::where('user_id', auth()->id())
-            ->where('friend_id', $id)
+        $userRelationship = Friend::where('user_id', Auth::id())
+            ->where('friend_id', $user->id)
             ->first();
 
         if (!$userRelationship) {
             if ($action === 'request') {
                 Friend::create([
-                    'user_id' => auth()->id(),
-                    'friend_id' => $id,
-                    'type' => FriendStatus::Pending->value,
+                    'user_id' => Auth::id(),
+                    'friend_id' => $user->id,
+                    'status' => FriendStatus::Pending->value,
                 ]);
-                auth()->user()->notify(new RequestFriend($id));
+                Auth::user()->notify(new RequestFriend($user->id));
                 return $this->successResponse(['message' => FriendStatus::SendRequest->value], 201);
             }
         } else {
-            $status = $userRelationship->type;
+            $status = $userRelationship->status;
 
             if ($status === FriendStatus::Accepted->value) {
                 if ($action === 'block') {
                     $userRelationship->update([
-                        'type' => FriendStatus::Blocked->value
+                        'status' => FriendStatus::Blocked->value
                     ]);
                     return $this->successResponse(['message' => FriendStatus::BlockRequest->value], 201);
                 } else if ($action === 'cancel') {
                     $userRelationship->update([
-                        'type' => FriendStatus::Cancel->value
+                        'status' => FriendStatus::Cancel->value
                     ]);
                     return $this->successResponse(['message' => FriendStatus::CancelRequest->value], 201);
                 }
             } else if ($status === FriendStatus::Pending->value) {
-
                 if ($action === 'accept') {
                     $userRelationship->update([
-                        'type' => FriendStatus::Accepted->value
+                        'status' => FriendStatus::Accepted->value
                     ]);
                     return $this->successResponse(['message' => FriendStatus::AcceptRequest->value], 201);
                 } else if ($action === 'cancel') {
                     $userRelationship->update([
-                        'type' => FriendStatus::Cancel->value
+                        'status' => FriendStatus::Cancel->value
                     ]);
                     return $this->successResponse(['message' => FriendStatus::CancelRequest->value], 201);
                 }
             } else if ($status === FriendStatus::Blocked) {
                 if ($action === 'unblock') {
                     $userRelationship->update([
-                        'type' => FriendStatus::Accepted->value
+                        'status' => FriendStatus::Accepted->value
                     ]);
                     return $this->successResponse(['message' => FriendStatus::UnblockRequest->value], 201);
                 }

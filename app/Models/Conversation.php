@@ -16,10 +16,23 @@ class Conversation extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-   
-
     public function messages()
     {
-        return $this->hasMany(Message::class);
+        return $this->hasMany(Message::class)->orderBy('created_at', 'desc');
+    }
+
+    public function lastMessage()
+    {
+        return $this->hasOne(Message::class)->latest();
+    }
+
+    public function participants()
+    {
+        return $this->belongsToMany(User::class, 'conversation_members', 'conversation_id', 'user_id');
+    }
+
+    public function members()
+    {
+        return $this->hasMany(ConversationMember::class);
     }
 }

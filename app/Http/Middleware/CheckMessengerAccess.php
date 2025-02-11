@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Conversation;
+use App\Models\ConversationMember;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +17,7 @@ class CheckMessengerAccess
     public function handle(Request $request, Closure $next): Response
     {
         $conversation = $request->route('conversation');
-        $isMember = Conversation::where('conversation_id', $conversation->id)
+        $isMember = ConversationMember::where('conversation_id', $conversation->id)
             ->where('user_id', auth()->user()->id)
             ->exists();
 

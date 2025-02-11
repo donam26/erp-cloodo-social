@@ -19,7 +19,7 @@ class MessageResource extends JsonResource
             'content' => $this->content,
             'conversation_id' => $this->conversation_id,
             'sender_id' => new UserResource($this->sender),
-            'created_at' => $this->created_at
+            'created_at' => $this->created_at,
         ];
     }
 }
