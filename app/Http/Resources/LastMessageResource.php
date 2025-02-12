@@ -15,10 +15,10 @@ class LastMessageResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'uuid' => $this->uuid,
+            'id' => $this->uuid,
             'type' => $this->type,
             'last_message' => $this->last_message ? [
-                'uuid' => $this->last_message->uuid,
+                'id' => $this->last_message->uuid,
                 'content' => $this->last_message->content,
                 'sender' => new UserResource($this->last_message->sender),
                 'created_at' => $this->last_message->created_at

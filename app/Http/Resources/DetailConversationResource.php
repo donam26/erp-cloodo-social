@@ -15,7 +15,8 @@ class DetailConversationResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'uuid' => $this->uuid,
+            'id' => $this->uuid,
+            'type' => $this->type,
             'participants' => UserResource::collection($this->participants),
             'messages' => MessageResource::collection($this->messages),
         ];

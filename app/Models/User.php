@@ -96,6 +96,7 @@ class User extends Authenticatable implements JWTSubject
             ->join('users', function ($join) {
                 $join->on('friends.friend_id', '=', 'users.id')
                     ->where('friends.user_id', '=', $this->id)
+                    ->where('friends.status', '=', FriendStatus::Accepted->value)
                     ->orOn('friends.user_id', '=', 'users.id')
                     ->where('friends.friend_id', '=', $this->id)
                     ->where('friends.status', '=', FriendStatus::Accepted->value);
@@ -133,8 +134,8 @@ class User extends Authenticatable implements JWTSubject
     public function waitAccepts()
     {
         return DB::table('users')
-            ->join('friends', 'users.id', '=', 'friends.friend_id')
-            ->where('friends.user_id', $this->id)
+            ->join('friends', 'users.id', '=', 'friends.user_id')
+            ->where('friends.friend_id', $this->id)
             ->where('friends.status', FriendStatus::Pending->value)
             ->select('users.*');
     }

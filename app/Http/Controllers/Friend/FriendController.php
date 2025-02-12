@@ -23,9 +23,16 @@ class FriendController extends Controller
 
     public function request(User $user, $action)
     {
-        $userRelationship = Friend::where('user_id', Auth::id())
-            ->where('friend_id', $user->id)
-            ->first();
+        // Kiểm tra cả 2 chiều của mối quan hệ
+        $userRelationship = Friend::where(function($query) use ($user) {
+            $query->where(function($q) use ($user) {
+                $q->where('user_id', Auth::id())
+                  ->where('friend_id', $user->id);
+            })->orWhere(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->where('friend_id', Auth::id());
+            });
+        })->first();
 
         if (!$userRelationship) {
             if ($action === 'request') {
@@ -39,6 +46,7 @@ class FriendController extends Controller
             }
         } else {
             $status = $userRelationship->status;
+            $isSender = $userRelationship->user_id === Auth::id();
 
             if ($status === FriendStatus::Accepted->value) {
                 if ($action === 'block') {
@@ -47,24 +55,22 @@ class FriendController extends Controller
                     ]);
                     return $this->successResponse(['message' => FriendStatus::BlockRequest->value], 201);
                 } else if ($action === 'cancel') {
-                    $userRelationship->update([
-                        'status' => FriendStatus::Cancel->value
-                    ]);
+                    $userRelationship->delete();
                     return $this->successResponse(['message' => FriendStatus::CancelRequest->value], 201);
                 }
             } else if ($status === FriendStatus::Pending->value) {
-                if ($action === 'accept') {
+                if (!$isSender && $action === 'accept') {
+                    // Chỉ người nhận mới có thể accept
                     $userRelationship->update([
                         'status' => FriendStatus::Accepted->value
                     ]);
                     return $this->successResponse(['message' => FriendStatus::AcceptRequest->value], 201);
                 } else if ($action === 'cancel') {
-                    $userRelationship->update([
-                        'status' => FriendStatus::Cancel->value
-                    ]);
+                    // Cả người gửi và nhận đều có thể cancel
+                    $userRelationship->delete();
                     return $this->successResponse(['message' => FriendStatus::CancelRequest->value], 201);
                 }
-            } else if ($status === FriendStatus::Blocked) {
+            } else if ($status === FriendStatus::Blocked->value) {
                 if ($action === 'unblock') {
                     $userRelationship->update([
                         'status' => FriendStatus::Accepted->value
@@ -86,7 +92,14 @@ class FriendController extends Controller
     public function waitAccepts(Request $request)
     {
         $limit = $request->input('limit', 10);
-        $suggestedFriends = auth()->user()->waitAccepts()->paginate($limit);
-        return $this->successResponse(UserResource::collection($suggestedFriends));
+        $waitAccepts = auth()->user()->waitAccepts()->paginate($limit);
+        return $this->successResponse(UserResource::collection($waitAccepts));
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+        $users = User::where('name', 'like', '%' . $query . '%')->get();
+        return $this->successResponse(UserResource::collection($users));
     }
 }

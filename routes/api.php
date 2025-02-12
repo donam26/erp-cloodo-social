@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgoraController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Friend\FriendController;
 use App\Http\Controllers\Group\GroupController;
@@ -44,6 +45,7 @@ Route::group(['middleware' => ['api']], function ($router) {
             Route::get('/suggests', [FriendController::class, 'suggests']);
             Route::get('/waitAccepts', [FriendController::class, 'waitAccepts']);
             Route::post('/{user}/{action}', [FriendController::class, 'request']);
+            Route::get('/search', [FriendController::class, 'search']);
         });
 
         // Route Group
@@ -78,6 +80,11 @@ Route::group(['middleware' => ['api']], function ($router) {
                 Route::put('/{conversation}', [ConversationController::class, 'update']);
                 Route::delete('/{conversation}', [ConversationController::class, 'delete']);
             });
+        });
+
+        // Route Agora
+        Route::prefix('agora')->group(function () {
+            Route::post('/token', [AgoraController::class, 'generateToken']);
         });
 
         // Route Story

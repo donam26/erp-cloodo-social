@@ -14,6 +14,30 @@ class StoryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        if ($this->resource instanceof \Illuminate\Support\Collection) {
+            // Nếu là collection (groupBy user_id), format theo user
+            return [
+                'user' => new UserResource($this->first()->author),
+                'stories' => $this->map(function ($story) {
+                    return [
+                        'id' => $story->uuid,
+                        'background' => $story->background,
+                        'text' => $story->text,
+                        'created_at' => $story->created_at,
+                        'expired_at' => $story->expired_at
+                    ];
+                })
+            ];
+        }
+
+        // Nếu là single story
+        return [
+            'id' => $this->uuid,
+            'author' => new UserResource($this->author),
+            'background' => $this->background,
+            'text' => $this->text,
+            'created_at' => $this->created_at,
+            'expired_at' => $this->expired_at
+        ];
     }
 }
