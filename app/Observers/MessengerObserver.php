@@ -8,6 +8,6 @@ class MessengerObserver
 {
     public function creating(Message $message)
     {
-        // $message->sender_id = auth()->user()->id;
+        $message->sender_id = auth()->user()->id;
     }
 }

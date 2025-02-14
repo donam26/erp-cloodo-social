@@ -5,20 +5,25 @@ namespace App\Http\Controllers\Messenger;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DetailConversationResource;
 use App\Http\Resources\LastMessageResource;
+use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use App\Models\ConversationMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ConversationController extends Controller
 {
     public function index()
     {
         $conversations = ConversationMember::with([
-                'conversation.messages.sender',
                 'conversation.participants',
                 'conversation.messages' => function($query) {
-                    $query->latest()->limit(1);
+                    $query->whereIn('id', function($subQuery) {
+                        $subQuery->select(\DB::raw('MAX(id)'))
+                            ->from('messages')
+                            ->groupBy('conversation_id');
+                    })->with('sender');
                 }
             ])
             ->where('user_id', Auth::id())
@@ -36,10 +41,24 @@ class ConversationController extends Controller
         return $this->successResponse(LastMessageResource::collection($conversations));
     }
 
-    public function detail(Conversation $conversation)
+    public function detail(Conversation $conversation, Request $request)
     {
-        $conversation->load(['messages.sender', 'participants']);
-        return $this->successResponse(new DetailConversationResource($conversation));
+        $limit = $request->input('limit', 20);
+        
+        $conversation->load(['participants']);
+        $messages = $conversation->messages()
+            ->with('sender')
+            ->paginate($limit);
+
+        return $this->successResponse([
+            'conversation' => new DetailConversationResource($conversation),
+            'messages' => [
+                'total' => $messages->total(),
+                'items' => MessageResource::collection($messages),
+                'current_page' => $messages->currentPage(),
+                'last_page' => $messages->lastPage()
+            ]
+        ]);
     }
 
     public function store(Request $request)

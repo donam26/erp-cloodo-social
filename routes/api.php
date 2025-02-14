@@ -8,8 +8,10 @@ use App\Http\Controllers\Group\GroupMemberController;
 use App\Http\Controllers\Messenger\ConversationController;
 use App\Http\Controllers\Post\PostController;
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Messenger\MessageController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Profile\ProfileController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Story\StoryController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +34,7 @@ Route::group(['middleware' => ['api']], function ($router) {
         // Route Post
         Route::prefix('posts')->group(function () {
             Route::get('/', [PostController::class, 'index']);
+            Route::get('/{post}', [PostController::class, 'show']);
             Route::post('/', [PostController::class, 'store']);
             Route::post('/{post}/react', [PostController::class, 'react']);
             Route::post('/{post}/comment', [PostController::class, 'comment']);
@@ -82,6 +85,10 @@ Route::group(['middleware' => ['api']], function ($router) {
             });
         });
 
+        Route::prefix('messages')->group(function () {
+            Route::post('/', [MessageController::class, 'store']);
+        });
+
         // Route Agora
         Route::prefix('agora')->group(function () {
             Route::post('/token', [AgoraController::class, 'generateToken']);
@@ -105,5 +112,7 @@ Route::group(['middleware' => ['api']], function ($router) {
             Route::get('/{user}', [ProfileController::class, 'show']);
             Route::get('/{user}/mutual-friends', [ProfileController::class, 'mutualFriends']);
         });
+
+        Route::get('/search', [SearchController::class, 'search']);
     });
 });

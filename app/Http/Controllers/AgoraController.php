@@ -1,44 +1,65 @@
 <?php
 
 namespace App\Http\Controllers;
-
-use App\Services\AgoraService;
 use Illuminate\Http\Request;
+use App\Libraries\AgoraToken\RtcTokenBuilder;
+use Illuminate\Support\Facades\Log;
 
 class AgoraController extends Controller
 {
-    protected $agoraService;
-
-    public function __construct(AgoraService $agoraService)
-    {
-        $this->agoraService = $agoraService;
-    }
-
     public function generateToken(Request $request)
     {
+       
+        $request->validate([
+            'channelName' => 'required|string'
+        ]);
+
+        $appID = env('AGORA_APP_ID');
+        $appCertificate = env('AGORA_APP_CERTIFICATE');
+        $channelName = $request->channelName;
+        
+        // Debug thông tin
+        Log::info('Agora Token Generation:', [
+            'appID' => $appID,
+            'appCertificate' => $appCertificate,
+            'channelName' => $channelName
+        ]);
+
+        if (empty($appID) || empty($appCertificate)) {
+            return response()->json([
+                'error' => 'Agora credentials not configured properly'
+            ], 500);
+        }
+
+        $uid = 0; // Có thể thay đổi theo user ID của bạn
+        $role = RtcTokenBuilder::RolePublisher;
+        $expireTimeInSeconds = 3600; // Token hết hạn sau 1 giờ
+        $currentTimestamp = now()->getTimestamp();
+        $privilegeExpiredTs = $currentTimestamp + $expireTimeInSeconds;
+
         try {
-            // Validate request
-            $request->validate([
-                'channel_name' => 'required|string',
-                'uid' => 'nullable|integer'
-            ]);
-
-            $channelName = $request->channel_name;
-            $uid = $request->uid ?? 0;
-
-            $token = $this->agoraService->generateToken($channelName, $uid);
+            $token = RtcTokenBuilder::buildTokenWithUid(
+                $appID,
+                $appCertificate,
+                $channelName,
+                $uid,
+                $role,
+                $privilegeExpiredTs
+            );
 
             return response()->json([
                 'token' => $token,
-                'channel_name' => $channelName,
-                'uid' => $uid,
-                'status' => 'success'
+                'appID' => $appID,
+                'channelName' => $channelName
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Agora Token Generation Error:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
-        } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
+                'error' => 'Failed to generate token'
             ], 500);
         }
     }

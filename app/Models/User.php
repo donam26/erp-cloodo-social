@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Scout\Searchable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable;
-    use UuidTrait;
+    use HasFactory, Notifiable, UuidTrait, Searchable;
 
     /**
      * The attributes that are mass assignable.
@@ -25,6 +25,13 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'image',
+        'image_background',
+        'bio',
+        'gender',
+        'status',
+        'provider',
+        'provider_id'
     ];
 
     /**
@@ -222,5 +229,26 @@ class User extends Authenticatable implements JWTSubject
             ->where('users.id', '!=', $this->id)
             ->where('users.id', '!=', $otherUserId)
             ->select('users.*');
+    }
+
+    public function searchableAs()
+    {
+        return 'users';
+    }
+
+
+    public function toSearchableArray()
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'bio' => $this->bio,
+            'image' => $this->image ?? url('/images/avatar.jpg'),
+            'image_background' => $this->image_background,
+            'gender' => $this->gender,
+            'status' => $this->status,
+            'created_at' => $this->created_at
+        ];
     }
 }

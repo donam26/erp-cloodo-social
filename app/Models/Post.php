@@ -6,11 +6,11 @@ use App\Builders\PostBuilder;
 use App\Enums\FriendStatus;
 use App\Traits\UuidTrait;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Laravel\Scout\Searchable;
 
 class Post extends Model
 {
-    use UuidTrait;
+    use UuidTrait, Searchable;
 
     protected $fillable = [
         'content',
@@ -44,5 +44,31 @@ class Post extends Model
         return new PostBuilder($query);
     }
 
- 
+    public function searchableAs()
+    {
+        return 'posts';
+    }
+
+
+    public function toSearchableArray()
+    {
+        $array = [
+            'id' => $this->id,
+            'content' => $this->content,
+            'author' => $this->author->name,
+            'created_at' => $this->created_at,
+            'status' => $this->status
+        ];
+
+        // Thêm comments vào nội dung tìm kiếm
+        $comments = $this->comments()->with('user')->get()->map(function ($comment) {
+            return [
+                'content' => $comment->content,
+                'author' => $comment->user->name
+            ];
+        });
+        $array['comments'] = $comments;
+
+        return $array;
+    }
 }

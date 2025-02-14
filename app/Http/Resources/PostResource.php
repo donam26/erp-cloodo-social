@@ -22,7 +22,7 @@ class PostResource extends JsonResource
             'group_id' => $this->group_id,
             'author' => new UserResource($this->author),
             'status' => $this->status,
-            'comments' => CommentResource::collection($this->comments()->with('user')->latest()->take(5)->get()),
+            'comments' => CommentResource::collection($this->comments()->with('user')->latest()->get()),
             'total_comments' => $this->comments()->count(),
             'reactions' => [
                 'total' => $this->reactions()->count(),

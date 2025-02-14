@@ -16,9 +16,11 @@ class DetailConversationResource extends JsonResource
     {
         return [
             'id' => $this->uuid,
+            'name' => $this->name,
             'type' => $this->type,
             'participants' => UserResource::collection($this->participants),
-            'messages' => MessageResource::collection($this->messages),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
         ];
     }
 }

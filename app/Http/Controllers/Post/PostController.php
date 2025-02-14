@@ -23,6 +23,12 @@ class PostController extends Controller
         return $this->successResponse(PostResource::collection($posts), 'Lấy bài viết thành công');
     }
 
+    public function show(Post $post)
+    {
+        $post->load(['author', 'comments', 'reactions', 'images']);
+        return $this->successResponse(new PostResource($post), 'Lấy bài viết thành công');
+    }
+
     public function store(StoreRequest $request)
     {
         $data = $request->validated();

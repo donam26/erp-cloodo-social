@@ -7,6 +7,7 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use App\Http\Resources\UserResource;
 
 class MessageSent implements ShouldBroadcastNow
 {
@@ -22,7 +23,7 @@ class MessageSent implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('conversation.' . $this->message->conversation_id),
+            new Channel('messagesNew'),
         ];
     }
 
@@ -32,7 +33,8 @@ class MessageSent implements ShouldBroadcastNow
             'message' => [
                 'id' => $this->message->uuid,
                 'content' => $this->message->content,
-                'sender_id' => $this->message->sender_id,
+                'conversation_id' => $this->message->conversation->uuid,
+                'sender' => new UserResource($this->message->sender),
                 'created_at' => $this->message->created_at
             ]
         ];
