@@ -10,6 +10,7 @@ use App\Http\Resources\CommentResource;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\PostImage;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -29,27 +30,46 @@ class PostController extends Controller
         return $this->successResponse(new PostResource($post), 'Lấy bài viết thành công');
     }
 
-    public function store(StoreRequest $request)
+    public function store(Request $request)
     {
-        $data = $request->validated();
-        $post = Post::create($data);
+       
+        $file = $request->file('image');
 
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $filePath = $image->store('images', 'public');
-                PostImage::create([
-                    'post_id' => $post->id,
-                    'image' => $filePath
-                ]);
-            }
-        }
+        $fileName = time() . '_' . $file->getClientOriginalName();
 
-        return $this->successResponse(
-                new PostResource($post),
-            'Tạo bài viết thành công',
-            201
-        );
+        // Lưu file lên S3
+        $path = Storage::disk('s3')->put('', $file);
+
+        // Lấy URL file trên S3
+        $url = Storage::disk('s3')->url($path);
+
+        return response()->json([
+            'message' => 'Upload thành công!',
+            'url' => $url,
+        ]);
     }
+
+    // public function store(StoreRequest $request)
+    // {
+    //     $data = $request->validated();
+    //     $post = Post::create($data);
+
+    //     if ($request->hasFile('images')) {
+    //         foreach ($request->file('images') as $image) {
+    //             $filePath = $image->store('images', 'public');
+    //             PostImage::create([
+    //                 'post_id' => $post->id,
+    //                 'image' => $filePath
+    //             ]);
+    //         }
+    //     }
+
+    //     return $this->successResponse(
+    //             new PostResource($post),
+    //         'Tạo bài viết thành công',
+    //         201
+    //     );
+    // }
 
     public function update(UpdateRequest $request, Post $post)
     {
@@ -83,7 +103,7 @@ class PostController extends Controller
         try {
             $user = Auth::user();
             $reaction = $post->reactions()->where('user_id', $user->id)->first();
-            
+
             if ($reaction) {
                 $reaction->delete();
                 $message = 'Đã bỏ reaction';

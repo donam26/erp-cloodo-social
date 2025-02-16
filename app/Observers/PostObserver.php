@@ -9,7 +9,9 @@ class PostObserver
 {
     public function creating(Post $post)
     {
-        // Gán user_id khi tạo post
+        if (app()->runningInConsole()) {
+            return; // Không thực hiện hành động gì khi đang chạy seeder
+        }
         $post->user_id = auth()->id();
     }
 

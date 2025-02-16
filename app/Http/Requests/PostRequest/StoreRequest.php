@@ -10,7 +10,9 @@ class StoreRequest extends BaseRequest
     {
         return [
             'content' => 'required|string',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+            'privacy' => 'required|string|in:public,private,friends',
+            'images' => 'nullable|array',
+            'images.*' => ['nullable', 'string', 'regex:/^data:image\/(jpeg|png|jpg|gif);base64,/']
         ];
     }
 
@@ -18,9 +20,10 @@ class StoreRequest extends BaseRequest
     {
         return [
             'content.required' => 'Nội dung không được để trống',
-            'images.*.image' => 'File phải là hình ảnh',
-            'images.*.mimes' => 'Định dạng ảnh không hợp lệ',
-            'images.*.max' => 'Kích thước ảnh không được quá 2MB'
+            'privacy.required' => 'Quyền riêng tư không được để trống',
+            'privacy.in' => 'Quyền riêng tư không hợp lệ',
+            'images.array' => 'Dữ liệu ảnh không hợp lệ',
+            'images.*.regex' => 'Định dạng ảnh base64 không hợp lệ'
         ];
     }
 }

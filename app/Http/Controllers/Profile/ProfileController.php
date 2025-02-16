@@ -24,7 +24,7 @@ class ProfileController extends Controller
         
         return $this->successResponse([
             'profile' => new ProfileResource($user),
-            'friend_status' => $friendStatus ? $friendStatus->status : null,
+            'friend_status' => $friendStatus ? $friendStatus->status : "null",
             'is_self' => $currentUser->id === $user->id
         ]);
     }

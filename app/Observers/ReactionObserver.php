@@ -9,7 +9,9 @@ class ReactionObserver
 {
     public function creating(Reaction $reaction)
     {
-        // Gán user_id khi tạo post
+        if (app()->runningInConsole()) {
+            return; // Không thực hiện hành động gì khi đang chạy seeder
+        }
         $reaction->user_id = auth()->id();
     }
 
