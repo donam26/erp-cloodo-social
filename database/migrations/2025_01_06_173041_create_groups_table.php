@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('uuid', 255)->unique();
             $table->string('name', 255);
             $table->string('image', 255);
-            $table->string('image_background', 255);
             $table->enum('status', ['private', 'public'])->default('public');
             $table->foreignId('admin_id')->constrained('users');
             $table->string('description', 255);

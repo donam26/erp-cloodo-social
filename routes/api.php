@@ -53,15 +53,15 @@ Route::group(['middleware' => ['api']], function ($router) {
 
         // Route Group
         Route::prefix('groups')->group(function () {
+            Route::get('/', [GroupController::class, 'index']);
             Route::post('/', [GroupController::class, 'store']);
             Route::put('/{group}', [GroupController::class, 'update']);
             Route::delete('/{group}', [GroupController::class, 'delete']);
             Route::get('/participated', [GroupController::class, 'participated']);
             Route::get('/suggested', [GroupController::class, 'suggested']);
-            // Route::middleware(['auth', 'check.group.access'])->group(function () {
-            Route::middleware(['check.group.access'])->group(function () {
+            // Route::middleware(['check.group.access'])->group(function () {
                 Route::get('/{group}', [GroupController::class, 'show']);
-            });
+            // });
         });
 
         // Route Group Member

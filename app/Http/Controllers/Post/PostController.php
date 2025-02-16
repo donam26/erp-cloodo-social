@@ -38,7 +38,7 @@ class PostController extends Controller
         $fileName = time() . '_' . $file->getClientOriginalName();
 
         // Lưu file lên S3
-        $path = Storage::disk('s3')->put('', $file);
+        $path = Storage::disk('s3')->put('posts', $file);
 
         // Lấy URL file trên S3
         $url = Storage::disk('s3')->url($path);

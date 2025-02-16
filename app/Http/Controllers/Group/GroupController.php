@@ -9,9 +9,18 @@ use App\Http\Resources\GroupResource;
 use App\Models\Group;
 use App\Models\GroupMember;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use App\Utilities\ImageUploader;
+use Illuminate\Support\Facades\Auth;
 
 class GroupController extends Controller
 {
+    public function index()
+    {
+        $groups = Group::latest()->paginate(10);
+        return $this->successResponse(GroupResource::collection($groups));
+    }
+
     public function show(Group $group)
     {
         return $this->successResponse(new GroupResource($group));
@@ -19,24 +28,27 @@ class GroupController extends Controller
 
     public function store(StoreRequest $request)
     {
-        $data = $request->validated();
-        // Kiểm tra và xử lý file ảnh
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $filePath = $request->file('image')->store('images', 'public');
-            $data['image'] = $filePath; 
-        }
+        // Upload ảnh và lấy URL
+        $imageUrl = ImageUploader::uploadBase64Image($request->image, 'groups');
 
-        $group = Group::create($data);
+        $group = Group::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'image' => $imageUrl,
+            'status' => $request->status,
+        ]);
+
         return $this->successResponse(new GroupResource($group));
     }
 
     public function update(UpdateRequest $request, Group $group)
     {
         $data = $request->validated();
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $filePath = $request->file('image')->store('images', 'public');
-            $data['image'] = $filePath; 
+
+        if ($request->has('image')) {
+            $data['image'] = ImageUploader::uploadBase64Image($request->image, 'groups');
         }
+
         $group->update($data);
         return $this->successResponse(new GroupResource($group));
     }
@@ -49,17 +61,41 @@ class GroupController extends Controller
 
     public function participated()
     {
-        // $participatedGroupIds = GroupMember::where('user_id', auth()->user()->id)->pluck('group_id')->toArray();
+        $groups = Group::whereHas('members', function ($query) {
+            $query->where('user_id', Auth::id());
+        })
+            ->latest()
+            ->paginate(10);
 
-        // $suggestedGroups = Group::whereIn('id', $participatedGroupIds)->get();
-        // return GroupResource::collection($suggestedGroups);
+        return $this->successResponse(
+            GroupResource::collection($groups)
+                ->additional([
+                    'meta' => [
+                        'total' => $groups->total(),
+                        'page' => $groups->currentPage(),
+                        'last_page' => $groups->lastPage()
+                    ]
+                ])
+        );
     }
 
     public function suggested()
     {
-        // $participatedGroupIds = GroupMember::where('user_id', auth()->user()->id)->pluck('group_id')->toArray();
+        $groups = Group::whereDoesntHave('members', function ($query) {
+            $query->where('user_id', Auth::id());
+        })
+            ->latest()
+            ->paginate(10);
 
-        // $suggestedGroups = Group::whereNotIn('id', $participatedGroupIds)->get();
-        // return GroupResource::collection($suggestedGroups);
+        return $this->successResponse(
+            GroupResource::collection($groups)
+                ->additional([
+                    'meta' => [
+                        'total' => $groups->total(),
+                        'page' => $groups->currentPage(),
+                        'last_page' => $groups->lastPage()
+                    ]
+                ])
+        );
     }
 }
