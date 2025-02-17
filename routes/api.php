@@ -8,6 +8,7 @@ use App\Http\Controllers\Group\GroupMemberController;
 use App\Http\Controllers\Messenger\ConversationController;
 use App\Http\Controllers\Post\PostController;
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Livestream\LivestreamController;
 use App\Http\Controllers\Messenger\MessageController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Profile\ProfileController;
@@ -91,7 +92,8 @@ Route::group(['middleware' => ['api']], function ($router) {
 
         // Route Agora
         Route::prefix('agora')->group(function () {
-            Route::post('/token', [AgoraController::class, 'generateToken']);
+            Route::post('/broadcaster/token', [AgoraController::class, 'generateBroadcasterToken']);
+            Route::post('/viewer/token', [AgoraController::class, 'generateViewerToken']);
         });
 
         // Route Story
@@ -111,6 +113,14 @@ Route::group(['middleware' => ['api']], function ($router) {
             Route::get('/', [ProfileController::class, 'index']);
             Route::get('/{user}', [ProfileController::class, 'show']);
             Route::get('/{user}/mutual-friends', [ProfileController::class, 'mutualFriends']);
+        });
+
+        // Route Livestream
+        Route::prefix('livestreams')->group(function () {
+            Route::get('/', [LivestreamController::class, 'index']);
+            Route::post('/', [LivestreamController::class, 'store']);
+            Route::get('/{livestream}', [LivestreamController::class, 'show']);
+            Route::post('/{livestream}/join', [LivestreamController::class, 'join']);
         });
 
         Route::get('/search', [SearchController::class, 'search']);

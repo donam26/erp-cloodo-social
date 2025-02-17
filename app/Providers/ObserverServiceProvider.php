@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Group;
 use App\Models\Message;
 use App\Models\Post;
+use App\Models\Livestream;
 use App\Models\Reaction;
 use App\Models\Comment;
 use App\Observers\GroupObserver;
@@ -12,6 +13,7 @@ use App\Observers\MessengerObserver;
 use App\Observers\PostObserver;
 use App\Observers\ReactionObserver;
 use App\Observers\CommentObserver;
+use App\Observers\LivestreamObserver;
 use Illuminate\Support\ServiceProvider;
 
 class ObserverServiceProvider extends ServiceProvider
@@ -34,5 +36,6 @@ class ObserverServiceProvider extends ServiceProvider
         Message::observe(MessengerObserver::class);
         Reaction::observe(ReactionObserver::class);
         Comment::observe(CommentObserver::class);
+        Livestream::observe(LivestreamObserver::class);
     }
 } 
