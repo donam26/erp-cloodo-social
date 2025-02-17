@@ -15,4 +15,9 @@ class ChatStream extends Model
     {
         return $this->belongsTo(Livestream::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

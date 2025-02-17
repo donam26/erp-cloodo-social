@@ -13,6 +13,7 @@ use App\Models\PostImage;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\NewCommentNotification;
 
 class PostController extends Controller
 {
@@ -136,6 +137,11 @@ class PostController extends Controller
                 'post_id' => $post->id,
                 'content' => $validated['content']
             ]);
+
+            // Gửi thông báo cho chủ bài viết
+            // if ($post->author->id !== Auth::id()) {
+                $post->author->notify(new NewCommentNotification($comment));
+            // }
 
             return $this->successResponse(
                 new CommentResource($comment),

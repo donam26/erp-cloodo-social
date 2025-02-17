@@ -49,4 +49,12 @@ class LivestreamController extends Controller
         $livestream->save();
         return $this->successResponse(null, 'Livestream ended successfully');
     }
+
+    public function chat(Livestream $livestream, Request $request)
+    {
+        $livestream->messages()->create([
+            'message' => $request->message,
+        ]);
+        return $this->successResponse(null, 'Message sent successfully');
+    }
 } 

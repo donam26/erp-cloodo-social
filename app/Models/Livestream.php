@@ -25,4 +25,9 @@ class Livestream extends Model
         return $query->where('end_time', '=', null)
             ->where('host_id', '!=', auth()->user()->id);
     }
+
+    public function messages()
+    {
+        return $this->hasMany(ChatStream::class);
+    }
 }

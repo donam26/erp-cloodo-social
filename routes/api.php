@@ -10,7 +10,7 @@ use App\Http\Controllers\Post\PostController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Livestream\LivestreamController;
 use App\Http\Controllers\Messenger\MessageController;
-use App\Http\Controllers\Notification\NotificationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Story\StoryController;
@@ -78,12 +78,12 @@ Route::group(['middleware' => ['api']], function ($router) {
         // Route Conversation
         Route::prefix('conversations')->group(function () {
             Route::get('/', [ConversationController::class, 'index']);
-            Route::middleware(['check.messenger.access'])->group(function () {
+            // Route::middleware(['check.messenger.access'])->group(function () {
                 Route::get('/{conversation}', [ConversationController::class, 'detail']);
                 Route::post('/', [ConversationController::class, 'store']);
                 Route::put('/{conversation}', [ConversationController::class, 'update']);
                 Route::delete('/{conversation}', [ConversationController::class, 'delete']);
-            });
+            // });
         });
 
         Route::prefix('messages')->group(function () {
@@ -104,9 +104,9 @@ Route::group(['middleware' => ['api']], function ($router) {
         });
 
         // Route Notification
-        // Route::prefix('notifications')->group(function () {
-        //     Route::get('/', [NotificationController::class, 'index']);
-        // });
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+        });
 
         // Route Profile
         Route::prefix('profile')->group(function () {
@@ -122,6 +122,7 @@ Route::group(['middleware' => ['api']], function ($router) {
             Route::get('/{livestream}', [LivestreamController::class, 'show']);
             Route::post('/{livestream}/join', [LivestreamController::class, 'join']);
             Route::post('/{livestream}/end', [LivestreamController::class, 'end']);
+            Route::post('/{livestream}/chat', [LivestreamController::class, 'chat']);
         });
 
         Route::get('/search', [SearchController::class, 'search']);

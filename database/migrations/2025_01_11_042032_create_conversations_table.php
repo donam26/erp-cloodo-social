@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('conversations', function (Blueprint $table) {
             $table->id();
             $table->string('uuid', 255)->unique();
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->enum('type', ['group', 'private']);
             $table->foreignId('added_by')->constrained('users');
             $table->timestamps();

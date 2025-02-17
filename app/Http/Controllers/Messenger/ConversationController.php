@@ -8,6 +8,7 @@ use App\Http\Resources\LastMessageResource;
 use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use App\Models\ConversationMember;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -64,8 +65,9 @@ class ConversationController extends Controller
     public function store(Request $request)
     {
         $conversation = Conversation::create([
+            'name' => $request->name ?? null,
             'type' => $request->type ?? 'private',
-            'user_id' => Auth::id()
+            'added_by' => auth()->id()
         ]);
 
         // Thêm người tạo vào nhóm
@@ -75,10 +77,12 @@ class ConversationController extends Controller
         ]);
 
         // Thêm người nhận vào nhóm
-        if ($request->receiver_id) {
+        $participants = $request->participants;
+        foreach ($participants as $participant) {
+            $user = User::where('uuid', $participant)->first();
             ConversationMember::create([
                 'conversation_id' => $conversation->id,
-                'user_id' => $request->receiver_id
+                'user_id' => $user->id
             ]);
         }
 
