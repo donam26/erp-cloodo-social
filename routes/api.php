@@ -121,6 +121,7 @@ Route::group(['middleware' => ['api']], function ($router) {
             Route::post('/', [LivestreamController::class, 'store']);
             Route::get('/{livestream}', [LivestreamController::class, 'show']);
             Route::post('/{livestream}/join', [LivestreamController::class, 'join']);
+            Route::post('/{livestream}/end', [LivestreamController::class, 'end']);
         });
 
         Route::get('/search', [SearchController::class, 'search']);

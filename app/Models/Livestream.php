@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Livestream extends Model
 {
     use UuidTrait;
-    protected $fillable = ['image', 'title', 'description'];
+    protected $fillable = ['image', 'title', 'description', 'end_time'];
     
     public function host()
     {

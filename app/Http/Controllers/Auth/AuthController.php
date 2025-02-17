@@ -7,6 +7,7 @@ use App\Http\Requests\AuthRequest\RegisterRequest;
 use App\Http\Requests\AuthRequest\LoginRequest;
 use App\Http\Resources\LoginResource;
 use App\Models\User;
+use App\Utilities\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -52,12 +53,14 @@ class AuthController extends Controller
         $data = $request->validated();
 
         if($request->hasFile('image')){
-            $path = Storage::disk('s3')->put('images/originals', $request->file('image'), 'public');
-            $data['image'] = $path;
+            $image = ImageUploader::upload($request->file('image'), 'images/originals');
+            $data['image'] = $image['url'];
+        } else {
+            $data['image'] = "https://cloodo-social.s3.ap-southeast-1.amazonaws.com/avatar.jpg";
         }
 
         $data['password'] = Hash::make($data['password']);
-        $user = User::create($data);
+        User::create($data);
         $credentials = $request->only('email', 'password');
         if (!$token = JWTAuth::attempt($credentials)) {
             return $this->errorResponse('Unauthorized', 401);

@@ -9,7 +9,6 @@ class AgoraController extends Controller
 {
     public function generateBroadcasterToken(Request $request)
     {
-       
         $request->validate([
             'channelName' => 'required|string'
         ]);
@@ -74,16 +73,22 @@ class AgoraController extends Controller
         $appCertificate = config('services.agora.app_certificate');
         $channelName = $request->channelName;
         
+        // Debug thông tin
+        Log::info('Agora Token Generation:', [
+            'appID' => $appID,
+            'appCertificate' => $appCertificate,
+            'channelName' => $channelName
+        ]);
+
         if (empty($appID) || empty($appCertificate)) {
             return response()->json([
                 'error' => 'Agora credentials not configured properly'
             ], 500);
         }
 
-        // Sử dụng ID của viewer và chuyển thành số nguyên
-        $uid = (int) auth()->user()->id;
-        $role = RtcTokenBuilder::RoleSubscriber;
-        $expireTimeInSeconds = 24 * 3600; // Token hết hạn sau 24 giờ
+        $uid = 0; // Có thể thay đổi theo user ID của bạn
+        $role = RtcTokenBuilder::RolePublisher;
+        $expireTimeInSeconds = 3600; // Token hết hạn sau 1 giờ
         $currentTimestamp = now()->getTimestamp();
         $privilegeExpiredTs = $currentTimestamp + $expireTimeInSeconds;
 
@@ -100,10 +105,7 @@ class AgoraController extends Controller
             return response()->json([
                 'token' => $token,
                 'appID' => $appID,
-                'channelName' => $channelName,
-                'uid' => $uid,
-                'role' => $role,
-                'expireTime' => date('Y-m-d H:i:s', $privilegeExpiredTs)
+                'channelName' => $channelName
             ]);
         } catch (\Exception $e) {
             Log::error('Agora Token Generation Error:', [

@@ -41,7 +41,7 @@ class SocialAuthController extends Controller
                     'name' => $googleUser->name,
                     'password' => Hash::make(Str::random(16)),
                     'google_id' => $googleUser->id,
-                    'avatar' => $googleUser->avatar
+                    'avatar' => "https://cloodo-social.s3.ap-southeast-1.amazonaws.com/avatar.jpg"
                 ]
             );
 

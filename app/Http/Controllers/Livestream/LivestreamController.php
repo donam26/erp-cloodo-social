@@ -42,4 +42,11 @@ class LivestreamController extends Controller
         $livestream->participants()->attach(auth()->user()->id);
         return $this->successResponse(new LivestreamResource($livestream));
     }
+
+    public function end(Livestream $livestream)
+    {
+        $livestream->end_time = now();
+        $livestream->save();
+        return $this->successResponse(null, 'Livestream ended successfully');
+    }
 } 
