@@ -47,37 +47,61 @@ class ConversationController extends Controller
         $limit = $request->input('limit', 20);
         
         $conversation->load(['participants']);
+
         $messages = $conversation->messages()
             ->with('sender')
-            ->paginate($limit);
+            ->latest()
+            ->limit($limit)
+            ->get()
+            ->sortBy('created_at')
+            ->values();
 
         return $this->successResponse([
             'conversation' => new DetailConversationResource($conversation),
             'messages' => [
-                'total' => $messages->total(),
                 'items' => MessageResource::collection($messages),
-                'current_page' => $messages->currentPage(),
-                'last_page' => $messages->lastPage()
             ]
         ]);
     }
 
     public function store(Request $request)
     {
+        $participants = $request->participants;
+        $type = $request->type ?? 'private';
+        $currentUserId = Auth::id();
+
+        if ($type === 'private' && count($participants) === 1) {
+            $participant = User::where('uuid', $participants[0])->first();
+            
+            // Tìm cuộc trò chuyện private giữa 2 người
+            $existingConversation = Conversation::whereHas('members', function($query) use ($currentUserId) {
+                $query->where('user_id', $currentUserId);
+            })->whereHas('members', function($query) use ($participant) {
+                $query->where('user_id', $participant->id);
+            })->where('type', 'private')
+            ->first();
+
+            if ($existingConversation) {
+                return $this->successResponse(
+                    new LastMessageResource($existingConversation), 
+                    'Đã tìm thấy cuộc trò chuyện'
+                );
+            }
+        }
+
         $conversation = Conversation::create([
             'name' => $request->name ?? null,
-            'type' => $request->type ?? 'private',
-            'added_by' => auth()->id()
+            'type' => $type,
+            'added_by' => $currentUserId
         ]);
 
         // Thêm người tạo vào nhóm
         ConversationMember::create([
             'conversation_id' => $conversation->id,
-            'user_id' => Auth::id()
+            'user_id' => $currentUserId
         ]);
 
         // Thêm người nhận vào nhóm
-        $participants = $request->participants;
         foreach ($participants as $participant) {
             $user = User::where('uuid', $participant)->first();
             ConversationMember::create([
@@ -86,7 +110,10 @@ class ConversationController extends Controller
             ]);
         }
 
-        return $this->successResponse(new LastMessageResource($conversation), 'Tạo cuộc trò chuyện thành công');
+        return $this->successResponse(
+            new LastMessageResource($conversation), 
+            'Tạo cuộc trò chuyện thành công'
+        );
     }
 
     public function update(Request $request, Conversation $conversation)

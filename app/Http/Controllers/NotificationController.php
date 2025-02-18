@@ -48,4 +48,15 @@ class NotificationController extends Controller
             'Xóa thông báo thành công'
         );
     }
+
+    public function read($id)
+    {
+        $notification = Auth::user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+        
+        return $this->successResponse(
+            null,
+            'Đánh dấu đã đọc thành công'
+        );
+    }
 }

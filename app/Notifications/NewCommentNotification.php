@@ -2,11 +2,14 @@
 
 namespace App\Notifications;
 
+use App\Http\Resources\UserResource;
 use App\Models\Comment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\PrivateChannel;
 
 class NewCommentNotification extends Notification implements ShouldQueue
 {
@@ -27,9 +30,9 @@ class NewCommentNotification extends Notification implements ShouldQueue
     public function toDatabase($notifiable)
     {
         return [
-            'comment_id' => $this->comment->id,
-            'post_id' => $this->comment->post_id,
-            'user_id' => $this->comment->user_id,
+            'comment' => $this->comment->content,
+            'user' => UserResource::make($this->comment->user),
+            'post_id' => $this->comment->post->uuid,
             'content' => $this->comment->content,
             'message' => "{$this->comment->user->name} đã bình luận về bài viết của bạn"
         ];
@@ -38,11 +41,26 @@ class NewCommentNotification extends Notification implements ShouldQueue
     public function toBroadcast($notifiable)
     {
         return new BroadcastMessage([
-            'comment_id' => $this->comment->id,
-            'post_id' => $this->comment->post_id,
-            'user_id' => $this->comment->user_id,
-            'content' => $this->comment->content,
-            'message' => "{$this->comment->user->name} đã bình luận về bài viết của bạn"
+            'id' => $this->id, // ID của notification
+            'type' => get_class($this),
+            'data' => [
+                'comment' => $this->comment->content,
+                'user' => UserResource::make($this->comment->user),
+                'post_id' => $this->comment->post->uuid,
+                'content' => $this->comment->content,
+                'message' => "{$this->comment->user->name} đã bình luận về bài viết của bạn"
+            ],
+            'created_at' => now()->toISOString()
         ]);
+    }
+
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return Channel|array
+     */
+    public function broadcastOn()
+    {
+        return new Channel('notifications');
     }
 } 

@@ -78,12 +78,10 @@ Route::group(['middleware' => ['api']], function ($router) {
         // Route Conversation
         Route::prefix('conversations')->group(function () {
             Route::get('/', [ConversationController::class, 'index']);
-            // Route::middleware(['check.messenger.access'])->group(function () {
-                Route::get('/{conversation}', [ConversationController::class, 'detail']);
-                Route::post('/', [ConversationController::class, 'store']);
-                Route::put('/{conversation}', [ConversationController::class, 'update']);
-                Route::delete('/{conversation}', [ConversationController::class, 'delete']);
-            // });
+            Route::get('/{conversation}', [ConversationController::class, 'detail']);
+            Route::post('/', [ConversationController::class, 'store']);
+            Route::put('/{conversation}', [ConversationController::class, 'update']);
+            Route::delete('/{conversation}', [ConversationController::class, 'delete']);
         });
 
         Route::prefix('messages')->group(function () {
@@ -106,6 +104,7 @@ Route::group(['middleware' => ['api']], function ($router) {
         // Route Notification
         Route::prefix('notifications')->group(function () {
             Route::get('/', [NotificationController::class, 'index']);
+            Route::post('/{notification}/read', [NotificationController::class, 'read']);
         });
 
         // Route Profile

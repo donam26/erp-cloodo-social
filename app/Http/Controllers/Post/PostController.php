@@ -138,11 +138,6 @@ class PostController extends Controller
                 'content' => $validated['content']
             ]);
 
-            // Gửi thông báo cho chủ bài viết
-            // if ($post->author->id !== Auth::id()) {
-                $post->author->notify(new NewCommentNotification($comment));
-            // }
-
             return $this->successResponse(
                 new CommentResource($comment),
                 'Đã thêm bình luận'

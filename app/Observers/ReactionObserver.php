@@ -3,7 +3,8 @@
 namespace App\Observers;
 
 use App\Models\Reaction;
-use Illuminate\Support\Facades\Storage;
+use App\Notifications\NewLikeNotification;
+use Illuminate\Support\Facades\Auth;
 
 class ReactionObserver
 {
@@ -12,7 +13,7 @@ class ReactionObserver
         if (app()->runningInConsole()) {
             return; // Không thực hiện hành động gì khi đang chạy seeder
         }
-        $reaction->user_id = auth()->id();
+        $reaction->user_id = Auth::id();
     }
 
     public function deleting(Reaction $reaction)
@@ -27,7 +28,11 @@ class ReactionObserver
 
     public function created(Reaction $reaction)
     {
-        // Logic sau khi tạo post
+        if ($reaction->post && $reaction->post->author) {
+            // if ($reaction->post->author->id !== Auth::id()) {
+            $reaction->post->author->notify(new NewLikeNotification($reaction));
+            // }
+        }
     }
 
     public function updated(Reaction $reaction)
