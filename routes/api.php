@@ -59,6 +59,7 @@ Route::group(['middleware' => ['api']], function ($router) {
             Route::put('/{group}', [GroupController::class, 'update']);
             Route::delete('/{group}', [GroupController::class, 'delete']);
             Route::get('/participated', [GroupController::class, 'participated']);
+            Route::get('/manage', [GroupController::class, 'manage']);
             Route::get('/suggested', [GroupController::class, 'suggested']);
             Route::get('/{group}', [GroupController::class, 'show']);
             Route::get('/{group}/members', [GroupController::class, 'members']);

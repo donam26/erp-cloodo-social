@@ -75,13 +75,17 @@ class GroupController extends Controller
 
         return $this->successResponse(
             GroupResource::collection($groups)
-                ->additional([
-                    'meta' => [
-                        'total' => $groups->total(),
-                        'page' => $groups->currentPage(),
-                        'last_page' => $groups->lastPage()
-                    ]
-                ])
+        );
+    }
+
+    public function manage()
+    {
+        $groups = Group::where('admin_id', Auth::id())
+            ->latest()
+            ->paginate(10);
+
+        return $this->successResponse(
+            GroupResource::collection($groups)
         );
     }
 
