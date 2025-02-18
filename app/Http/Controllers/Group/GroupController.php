@@ -7,11 +7,10 @@ use App\Http\Requests\GroupRequest\StoreRequest;
 use App\Http\Requests\GroupRequest\UpdateRequest;
 use App\Http\Resources\GroupResource;
 use App\Models\Group;
-use App\Models\GroupMember;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use App\Utilities\ImageUploader;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\GroupDetailResource;
+use App\Http\Resources\UserResource;
 
 class GroupController extends Controller
 {
@@ -23,7 +22,14 @@ class GroupController extends Controller
 
     public function show(Group $group)
     {
-        return $this->successResponse(new GroupResource($group));
+        $group->loadCount('members');
+        $group->load([
+            'posts' => function ($query) {
+                $query->latest()->limit(15);
+            }
+        ]);
+        
+        return $this->successResponse(new GroupDetailResource($group));
     }
 
     public function store(StoreRequest $request)
@@ -96,6 +102,15 @@ class GroupController extends Controller
                         'last_page' => $groups->lastPage()
                     ]
                 ])
+        );
+    }
+
+    public function members(Group $group)
+    {
+        $users = $group->members()->paginate(20);
+        $group->load('admin');
+        return $this->successResponse(
+            UserResource::collection($users)
         );
     }
 }

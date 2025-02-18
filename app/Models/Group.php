@@ -17,9 +17,9 @@ class Group extends Model
         'status'
     ];
 
-    public function members(): HasMany
+    public function members()
     {
-        return $this->hasMany(GroupMember::class);
+        return $this->belongsToMany(User::class, 'group_members', 'group_id', 'user_id');
     }
 
     public function posts()
@@ -30,5 +30,10 @@ class Group extends Model
     public function participated()
     {
         return $this->hasMany(GroupMember::class);
+    }
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id');
     }
 }

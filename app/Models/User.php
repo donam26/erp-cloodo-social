@@ -172,10 +172,20 @@ class User extends Authenticatable implements JWTSubject
                     });
             })
             ->where(function ($query) {
-                // Lấy bài viết công khai
-                $query->where('status', 'public')
-                    // Hoặc bài viết của chính mình (bất kể status)
-                    ->orWhere('posts.user_id', $this->id);
+                $query->where(function ($q) {
+                    // Lấy bài viết công khai của user
+                    $q->whereNull('group_id')
+                        ->where('status', 'public');
+                })
+                // Hoặc bài viết của chính mình (bất kể status)
+                ->orWhere('posts.user_id', $this->id)
+                // Hoặc bài viết từ nhóm công khai
+                ->orWhereExists(function ($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('groups')
+                        ->whereColumn('posts.group_id', 'groups.id')
+                        ->where('groups.status', 'public');
+                });
             })
             ->with(['author', 'comments', 'reactions', 'images'])
             ->orderBy('created_at', 'desc');
