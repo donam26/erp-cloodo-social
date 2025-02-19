@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Group;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GroupRequest\StoreRequest;
 use App\Http\Requests\GroupRequest\UpdateRequest;
+use App\Http\Resources\GroupMemberResource;
 use App\Http\Resources\GroupResource;
 use App\Models\Group;
 use App\Models\GroupMember;
@@ -20,11 +21,10 @@ class GroupMemberController extends Controller
         if(GroupMember::where('group_id', $group->id)->where('user_id', auth()->user()->id)->exists()) {
             return $this->errorResponse('Bạn đã tham gia vào nhóm này');
         }
-        $groupMember = GroupMember::create([
-            'group_id' => $group->id,
+        $group->members()->create([
             'user_id' => auth()->user()->id,
         ]);
-        return $this->successResponse(new GroupMemberResource($groupMember));
+        return $this->successResponse(null, 'Đã tham gia nhóm');
     }
 
     public function leave(Group $group)

@@ -16,7 +16,7 @@ class GroupMemberResource extends JsonResource
     {
         return [
             'id' => $this->uuid,
-            // 'group' => $this->group,
+            'group' => $this->group,
         ];
     }
 }

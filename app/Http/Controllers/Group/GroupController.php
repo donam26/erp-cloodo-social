@@ -117,4 +117,5 @@ class GroupController extends Controller
             UserResource::collection($users)
         );
     }
+    
 }

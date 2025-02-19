@@ -63,16 +63,8 @@ Route::group(['middleware' => ['api']], function ($router) {
             Route::get('/suggested', [GroupController::class, 'suggested']);
             Route::get('/{group}', [GroupController::class, 'show']);
             Route::get('/{group}/members', [GroupController::class, 'members']);
-        });
-
-        // Route Group Member
-        Route::prefix('group-members')->group(function () {
             Route::post('/{group}/join', [GroupMemberController::class, 'join']);
             Route::post('/{group}/leave', [GroupMemberController::class, 'leave']);
-            Route::post('/{group}/invite', [GroupMemberController::class, 'invite']);
-            Route::post('/{group}/accept', [GroupMemberController::class, 'accept']);
-            Route::post('/{group}/reject', [GroupMemberController::class, 'reject']);
-            Route::post('/{group}/remove', [GroupMemberController::class, 'remove']);
         });
 
         // Route Conversation
